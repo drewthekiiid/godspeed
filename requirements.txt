@@ -1,0 +1,10 @@
+Flask
+python-dotenv
+requests
+openai
+pymupdf
+pandas
+openpyxl
+python-docx
+
+pip install -r requirements.txt
