@@ -3,6 +3,7 @@ import requests
 import os
 import time
 import io
+import zipfile
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -17,6 +18,7 @@ app = Flask(__name__)
 
 SMARTSHEET_API_KEY = os.getenv("SMARTSHEET_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+SECRET_CODE = os.getenv("INTERNAL_SECRET_CODE")
 HEADERS = {"Authorization": f"Bearer {SMARTSHEET_API_KEY}"}
 BASE_URL = "https://api.smartsheet.com/2.0"
 
@@ -31,6 +33,20 @@ def fetch_json(url, method="GET", **kwargs):
     if not res.ok:
         return None, jsonify({"error": res.text}), res.status_code
     return res.json(), None, None
+
+def compress_if_large(file_bytes, filename):
+    if len(file_bytes) > 75 * 1024 * 1024:
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            zipf.writestr(filename, file_bytes)
+        return buf.getvalue(), 'application/zip', f"{filename}.zip"
+    return file_bytes, None, None
+
+@app.before_request
+def auth_check():
+    if request.endpoint not in ("healthcheck",):
+        if request.headers.get("X-Internal-Access") != SECRET_CODE:
+            return jsonify({"error": "Unauthorized. Invalid internal access code."}), 403
 
 @app.route("/test-download/<attachment_id>", methods=["GET"])
 def test_download_debug(attachment_id):
@@ -71,9 +87,7 @@ def analyze_content():
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "You are a document analyst."},
-                {"role": "user", "content": f"""{query}
-
-{content[:8000]}"""}
+                {"role": "user", "content": f"""{query}\n\n{content[:8000]}"""}
             ]
         )
         result = chat_response.choices[0].message.content
@@ -90,6 +104,10 @@ def analyze_attachment(sheet_id, attachment_id):
 
         file_res = requests.get(attachment.url)
         file_bytes = file_res.content
+        file_bytes, compressed_type, compressed_name = compress_if_large(file_bytes, attachment.name)
+        if compressed_type:
+            return jsonify({"note": "File was compressed due to size.", "filename": compressed_name}), 200
+
     except Exception as e:
         return jsonify({"error": f"Attachment fetch failed: {str(e)}"}), 400
 
@@ -121,9 +139,7 @@ def analyze_attachment(sheet_id, attachment_id):
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "You are a document analyst."},
-                {"role": "user", "content": f"""Analyze this document:
-
-{raw_text[:8000]}"""}
+                {"role": "user", "content": f"""Analyze this document:\n\n{raw_text[:8000]}"""}
             ]
         )
         analysis = chat_response.choices[0].message.content
@@ -131,5 +147,10 @@ def analyze_attachment(sheet_id, attachment_id):
     except Exception as e:
         return jsonify({"error": f"OpenAI error: {str(e)}"}), 502
 
+@app.route("/health", methods=["GET"])
+def healthcheck():
+    return jsonify({"status": "ok"})
+
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False)
+
