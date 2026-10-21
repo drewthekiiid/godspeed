@@ -127,11 +127,14 @@ if [ "$(uname -s)" = "Linux" ]; then
   done
 fi
 
-# Check AWS identity if credentials are present
+# Check AWS identity if credentials are present, then pull MCPs, API keys, .env files, agents, and skills from Vault
 # shellcheck source=ops/cloud-agent/config.sh
 source "$SCRIPT_DIR/config.sh"
 if aws sts get-caller-identity --no-cli-pager --cli-connect-timeout 10 --cli-read-timeout 30 --output text >/dev/null 2>&1; then
   echo "AWS identity: OK ($(aws sts get-caller-identity --no-cli-pager --query 'Arn' --output text 2>/dev/null))"
+  if [ -f "$SCRIPT_DIR/vault.sh" ]; then
+    bash "$SCRIPT_DIR/vault.sh" pull || echo "WARN: vault.sh pull encountered a non-fatal warning" >&2
+  fi
 else
   echo "AWS identity: not yet configured (ensure AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY are set in GitHub Copilot / Codespaces secrets)"
 fi

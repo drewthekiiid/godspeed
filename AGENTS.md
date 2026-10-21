@@ -26,3 +26,18 @@ bash ops/cloud-agent/box.sh --box <alias> start             # Boot a stopped on-
 | `famp-drift` | `i-0cefa97eec12f66bf` | `eu-central-1` | Drift Frankfurt harness (on-demand) |
 | `famp-alpaca` | `i-007a1960d1581eef0` | `us-east-1` | Alpaca Virginia harness (on-demand) |
 | `paperroute-box` | `i-08074a84c7478855e` | `us-east-1` | PaperRoute devbox (`/home/ubuntu/paperroute`, on-demand) |
+
+## AWS Cloud Vault (MCP Servers, 162 API Keys, Repo `.env`s, 7 Agents & 98 Skills)
+
+`install-aws-tools.sh` automatically runs `bash ops/cloud-agent/vault.sh pull` on Cloud VM boot to restore:
+- `~/.copilot/mcp-config.json` & `~/.cursor/mcp.json` (all 19 MCP server configs)
+- `~/.config/cloud-vault/global.env` (162 global API keys auto-sourced in shell) + `~/.cursor/ghl.env` + `~/.cursor/namecheap.env`
+- Repo-local `.env` / `.env.local` / `ops/*.env` files for the current workspace
+- `~/.copilot/agents/` (7 custom agents) + `~/.copilot/skills/` (98 skills) + `~/.cursor/tools/org-mcp`
+
+```bash
+bash ops/cloud-agent/vault.sh pull                  # Restore MCPs, global keys, agents/skills & current repo .env
+bash ops/cloud-agent/vault.sh list                  # List all 19 MCPs, repo .env bundles, and 162 API key names
+bash ops/cloud-agent/vault.sh get <KEY_NAME>        # Fetch a specific API key on demand (e.g., OPENAI_API_KEY, GHL_PIT)
+bash ops/cloud-agent/vault.sh env <repo-slug>       # Materialize another repo's .env bundle on demand
+```

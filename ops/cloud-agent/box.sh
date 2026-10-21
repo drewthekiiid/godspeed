@@ -49,8 +49,9 @@ Usage:
   box.sh [--box <alias>] start                   Start a stopped EC2 box and wait for SSM Online
   box.sh [--box <alias>] stop                    Stop an on-demand EC2 box
   box.sh [--box <alias>] sync-repo               git pull --ff-only in $REPO on the box
-  box.sh [--box <alias>] fetch-secrets           Pull app secrets on the box (PaperRoute devbox)
+  box.sh [--box <alias>] fetch-secrets           Pull app secrets on the box + restore cloud vault .env
   box.sh [--box <alias>] transcripts             List mirrored chat transcripts on the box
+  box.sh vault [pull|list|get|env|status]        Pull MCP configs, 162 API keys, .env files, agents & skills from AWS Vault
 
 Default box for this repo: $BOX_NAME ($INSTANCE in $REGION, ssh alias: $SSH_HOST)
 Fleet aliases:
@@ -181,7 +182,11 @@ case "$CMD" in
     ;;
   fetch-secrets)
     require_aws
-    run_ssm "cd '$REPO' && bash ops/devbox/fetch-secrets.sh"
+    bash "$SCRIPT_DIR/vault.sh" pull --force
+    ;;
+  vault)
+    require_aws
+    exec bash "$SCRIPT_DIR/vault.sh" "$@"
     ;;
   transcripts)
     require_aws
