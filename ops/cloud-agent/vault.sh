@@ -184,12 +184,27 @@ PY
       fi
 
       # Ensure shell profiles on Linux Cloud VMs auto-source ~/.config/cloud-vault/global.env
-      if [ "$(uname -s)" = "Linux" ] && [ -f "$HOME/.config/cloud-vault/global.env" ]; then
-        for rc in "$HOME/.bashrc" "$HOME/.profile" "$HOME/.zshrc"; do
-          touch "$rc"
-          grep -qF '.config/cloud-vault/global.env' "$rc" 2>/dev/null || \
-            echo '[ -f "$HOME/.config/cloud-vault/global.env" ] && . "$HOME/.config/cloud-vault/global.env"' >> "$rc"
-        done
+      # and link .agents/skills -> ~/.copilot/skills (excluded from git) so Cloud Agents discover all 98 skills.
+      if [ "$(uname -s)" = "Linux" ]; then
+        if [ -f "$HOME/.config/cloud-vault/global.env" ]; then
+          for rc in "$HOME/.bashrc" "$HOME/.profile" "$HOME/.zshrc"; do
+            touch "$rc"
+            grep -qF '.config/cloud-vault/global.env' "$rc" 2>/dev/null || \
+              echo '[ -f "$HOME/.config/cloud-vault/global.env" ] && . "$HOME/.config/cloud-vault/global.env"' >> "$rc"
+          done
+        fi
+        if [ -d "$HOME/.copilot/skills" ] && [ -d "$REPO_ROOT/.git" ]; then
+          mkdir -p "$REPO_ROOT/.agents" "$REPO_ROOT/.github"
+          ln -sfn "$HOME/.copilot/skills" "$REPO_ROOT/.agents/skills"
+          ln -sfn "$HOME/.copilot/skills" "$REPO_ROOT/.github/skills"
+          if [ -d "$HOME/.copilot/agents" ]; then
+            ln -sfn "$HOME/.copilot/agents" "$REPO_ROOT/.github/agents"
+          fi
+          mkdir -p "$REPO_ROOT/.git/info"
+          for pat in ".agents/" ".github/skills" ".github/agents"; do
+            grep -qF "$pat" "$REPO_ROOT/.git/info/exclude" 2>/dev/null || echo "$pat" >> "$REPO_ROOT/.git/info/exclude"
+          done
+        fi
       fi
     fi
     ;;

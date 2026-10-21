@@ -116,6 +116,7 @@ if [ -n "${GITHUB_ENV:-}" ]; then
     echo "AWS_PAGER="
     echo "AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-${AWS_REGION:-us-east-1}}"
     echo "AWS_REGION=${AWS_REGION:-${AWS_DEFAULT_REGION:-us-east-1}}"
+    echo "COPILOT_AGENT_FIREWALL_ALLOW_LIST_ADDITIONS=amazonaws.com,21st.dev,services.leadconnectorhq.com,api.github.com,mcp.notion.com,mcp.clickup.com,pacelabintervals.com,app.base44.com"
     [ -n "${CLOUD_AGENT_BOX:-}" ] && echo "CLOUD_AGENT_BOX=${CLOUD_AGENT_BOX}"
   } >> "$GITHUB_ENV"
 fi
