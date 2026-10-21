@@ -1,0 +1,30 @@
+name: "Copilot Setup Steps"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    environment: copilot
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS SSM & SSH Fleet Access
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION || 'us-east-1' }}
+          AWS_REGION: us-east-1
+          CLOUD_AGENT_BOX: famp-research
+        run: |
+          bash ops/cloud-agent/install-aws-tools.sh
+          bash ops/cloud-agent/verify-aws.sh
+
+      - name: Install Project Dependencies
+        continue-on-error: true
+        run: |
+          ([ -f package.json ] && npm install || true)

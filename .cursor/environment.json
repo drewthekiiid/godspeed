@@ -1,0 +1,18 @@
+{
+  "install": "bash ops/cloud-agent/install-aws-tools.sh && ([ -f package.json ] && npm install || true)",
+  "start": "bash ops/cloud-agent/verify-aws.sh",
+  "env": {
+    "AWS_REGION": "us-east-1",
+    "AWS_DEFAULT_REGION": "us-east-1",
+    "POLYGAMY_BOX_INSTANCE_ID": "i-01c97deadad199159",
+    "FAMP_SNIPER_AWS_INSTANCE_ID": "i-002255402e5ed0044",
+    "BPUMPER_BOX_INSTANCE_ID": "i-001af733ab7600594",
+    "FAMP_RESEARCH_AWS_INSTANCE_ID": "i-07b4eecaa41cb53a8",
+    "FAMP_HL_AWS_INSTANCE_ID": "i-0de47d4dca7713d99",
+    "FAMP_TESTMP_AWS_INSTANCE_ID": "i-041be9b38ad6e05e7",
+    "FAMP_DRIFT_AWS_INSTANCE_ID": "i-0cefa97eec12f66bf",
+    "FAMP_ALPACA_AWS_INSTANCE_ID": "i-007a1960d1581eef0",
+    "PAPERROUTE_BOX_INSTANCE_ID": "i-08074a84c7478855e",
+    "CLOUD_AGENT_BOX": "famp-research"
+  }
+}
