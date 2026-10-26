@@ -1,0 +1,15 @@
+# agents/manager_agent.py
+
+from langsmith import traceable
+
+@traceable
+def manager_agent(state):
+    """
+    Godspeed Manager Agent (MVP version)
+    - Receives 'query' and 'content' in state
+    - Always delegates to estimator (future: can route to RFI, etc.)
+    """
+    query = state.get('query', '')
+    content = state.get('content', '')
+    # Pass everything through for now, but you could add branching later
+    return {"action": "estimator", "payload": content}

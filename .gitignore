@@ -1,1 +1,16 @@
 .env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Caches & tooling
+.vscode/
+.agents/
+.DS_Store
+*.zip
+new-godspeed-backup/
